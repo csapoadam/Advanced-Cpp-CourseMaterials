@@ -42,10 +42,9 @@ public:
 		servicedCustomers.clear();
 		int timeAvailable = 5; // 5 szekundumig szolgalja ki az ugyfeleket
 		while (timeAvailable > 0) {
-			
 			for (unsigned int custinx = 0; custinx < customersRef.size(); custinx++) {
 				Customer& cust = customersRef[custinx];
-				if (cust.isWaiting()) {
+				if (cust.isWaiting() && timeAvailable > 0) {
 					isCurrentlyBusy = true;
 					cust.startServing();
 					servicedCustomers.push_back(&cust);
