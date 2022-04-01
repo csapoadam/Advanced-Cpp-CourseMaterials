@@ -19,12 +19,11 @@ void initialize_random_seed() {
 	); // rand() random generator seed-je mindig mas lesz
 }
 
-void printCustomers(const std::list<Teller>& tels, const std::deque<Customer>& cus) {
+void printTellers(const std::list<Teller>& tels) {
+	int cnt = 1;
 	for (const auto& tel : tels) {
+		std::cout << "Teller " << cnt++ << std::endl;
 		tel.printServicedCustomers();
-	}
-	for (const auto& cu : cus) {
-		std::cout << "\t\t" << cu << std::endl;
 	}
 }
 
@@ -35,13 +34,13 @@ void printCustomers(const std::deque<Customer>& cus) {
 }
 
 void removeFinishedCustomers(std::deque<Customer>& cus) {
-	std::deque<int> positionsToDelete;
+	std::deque<int> positionsToDeleteInReverseOrder; // forditott sorrendbe vannak
 	for (unsigned int inx = 0; inx < cus.size(); inx++) {
 		if (cus[inx].getTaskComplexityAsInt() == 0) {
-			positionsToDelete.push_front(inx);
+			positionsToDeleteInReverseOrder.push_front(inx);
 		}
 	}
-	for (const int pos : positionsToDelete) {
+	for (const int pos : positionsToDeleteInReverseOrder) {
 		cus.erase(cus.cbegin() + pos);
 	}
 }
@@ -74,7 +73,8 @@ int main()
 			(*i).run();
 
 		std::cout << "\tCustomers remaining:" << std::endl;
-		printCustomers(tellers, customers);
+		printTellers(tellers);
+		printCustomers(customers);
 
 		removeFinishedCustomers(customers);
 
@@ -85,19 +85,21 @@ int main()
 		// Ha tobb mint 1 kiszolgalo van es nincs 2x annyi ugyfel mint kiszolgalo, 1 kiszolgalo pihenhet
 		if (tellers.size() > 1 && customers.size() / tellers.size() < 2) {
 			for (TellIt i = tellers.begin(); i != tellers.end(); i++) {
-				if (!(*i).isBusy()) {
+				//if (!(*i).isBusy()) {
 					tellers.erase(i);
 					break;
-				}
+				//}
 			}
 		}
 
 		if (
-			customers.empty() &&
-			std::find_if(
+			customers.empty() //&&
+			/*std::find_if(
 				tellers.begin(),
 				tellers.end(),
-				[](const Teller& t) -> bool { return t.isBusy(); }) == tellers.cend()) {
+				[](const Teller& t) -> bool { return t.isBusy(); }) == tellers.cend()
+			*/
+			) {
 			break;
 		}
 
