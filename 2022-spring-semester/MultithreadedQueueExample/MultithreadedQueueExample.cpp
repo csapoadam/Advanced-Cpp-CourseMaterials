@@ -6,7 +6,7 @@
 #include <deque>
 #include <list>
 #include <vector>
-#include <thread>
+
 
 #include <stdlib.h> // srand, rand miatt
 

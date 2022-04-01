@@ -1,10 +1,14 @@
 #pragma once
 
+#include <thread>
+#include <mutex>
+
 class Customer {
 	int customerId;
 	std::chrono::seconds taskComplexity;
 	bool isCurrentlyWaiting;
 	bool isAlreadyDone;
+	std::mutex lock;
 public:
 	friend std::ostream& operator<<(std::ostream&, const Customer&);
 	Customer(int id, std::chrono::seconds taskComplexity) :
@@ -13,7 +17,23 @@ public:
 		isCurrentlyWaiting{true},
 		isAlreadyDone{false}
 	{}
+	Customer(const Customer& other) :
+		customerId{other.customerId},
+		taskComplexity{other.taskComplexity},
+		isCurrentlyWaiting{other.isCurrentlyWaiting},
+		isAlreadyDone{other.isAlreadyDone},
+		lock{}
+	{}
+	Customer& operator=(const Customer& other) {
+		customerId = other.customerId;
+		taskComplexity = other.taskComplexity;
+		isCurrentlyWaiting = other.isCurrentlyWaiting;
+		isAlreadyDone = other.isAlreadyDone;
+		return *this;
+	}
 	int getId() { return customerId; }
+	bool tryToLock() { return lock.try_lock(); }
+	void unlock() { lock.unlock(); }
 	bool isWaiting() { return isCurrentlyWaiting; }
 	void startServing() { isCurrentlyWaiting = false; }
 	void stopServing() { isCurrentlyWaiting = true; }
@@ -44,6 +64,10 @@ public:
 		while (timeAvailable > 0) {
 			for (unsigned int custinx = 0; custinx < customersRef.size(); custinx++) {
 				Customer& cust = customersRef[custinx];
+				// lockoljuk a customert, hogy garantaltan legfeljebb 1 szalnak
+				// mondhassa, hogy isWaiting() = true
+				if (cust.tryToLock()) {
+
 				if (cust.isWaiting() && timeAvailable > 0) {
 					isCurrentlyBusy = true;
 					cust.startServing();
@@ -51,15 +75,24 @@ public:
 
 					int remainingTimeForCustomer = cust.getTaskComplexityAsInt();
 					if (timeAvailable >= remainingTimeForCustomer) {
+						std::this_thread::sleep_for(
+							std::chrono::seconds(remainingTimeForCustomer)
+						);
 						cust.setToDone();
 						timeAvailable = timeAvailable - remainingTimeForCustomer;
 					}
 					else {
+						std::this_thread::sleep_for(
+							std::chrono::seconds(timeAvailable)
+						);
 						cust.setComplexityTo(remainingTimeForCustomer - timeAvailable);
 						cust.stopServing();
 						timeAvailable = 0;
 					}
 					isCurrentlyBusy = false;
+				}
+
+				cust.unlock();
 				}
 			}
 
