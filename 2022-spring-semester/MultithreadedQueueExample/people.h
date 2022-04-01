@@ -17,7 +17,7 @@ public:
 		isCurrentlyWaiting{true},
 		isAlreadyDone{false}
 	{}
-	Customer(const Customer& other) :
+	/*Customer(const Customer& other) :
 		customerId{other.customerId},
 		taskComplexity{other.taskComplexity},
 		isCurrentlyWaiting{other.isCurrentlyWaiting},
@@ -30,7 +30,7 @@ public:
 		isCurrentlyWaiting = other.isCurrentlyWaiting;
 		isAlreadyDone = other.isAlreadyDone;
 		return *this;
-	}
+	}*/
 	int getId() { return customerId; }
 	bool tryToLock() { return lock.try_lock(); }
 	void unlock() { lock.unlock(); }
@@ -47,11 +47,11 @@ std::ostream& operator<<(std::ostream& os, const Customer& customerRef) {
 }
 
 class Teller {
-	std::deque<Customer>& customersRef;
+	std::deque<Customer*>& customersRef;
 	bool isCurrentlyBusy;
 	std::vector<Customer*> servicedCustomers;
 public:
-	Teller(std::deque<Customer>& waitingCustomers) :
+	Teller(std::deque<Customer*>& waitingCustomers) :
 		customersRef{waitingCustomers},
 		isCurrentlyBusy{false}
 	{}
@@ -63,7 +63,7 @@ public:
 		int timeAvailable = 5; // 5 szekundumig szolgalja ki az ugyfeleket
 		while (timeAvailable > 0) {
 			for (unsigned int custinx = 0; custinx < customersRef.size(); custinx++) {
-				Customer& cust = customersRef[custinx];
+				Customer& cust = *customersRef[custinx];
 				// lockoljuk a customert, hogy garantaltan legfeljebb 1 szalnak
 				// mondhassa, hogy isWaiting() = true
 				if (cust.tryToLock()) {

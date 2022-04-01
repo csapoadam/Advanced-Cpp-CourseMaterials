@@ -28,16 +28,17 @@ void printTellers(const std::list<Teller>& tels) {
 	}
 }
 
-void printCustomers(const std::deque<Customer>& cus) {
+void printCustomers(const std::deque<Customer*>& cus) {
 	for (const auto& cu : cus) {
-		std::cout << "\t\t" << cu << std::endl;
+		std::cout << "\t\t" << *cu << std::endl;
 	}
 }
 
-void removeFinishedCustomers(std::deque<Customer>& cus) {
+void removeFinishedCustomers(std::deque<Customer*>& cus) {
 	std::deque<int> positionsToDeleteInReverseOrder; // forditott sorrendbe vannak
 	for (unsigned int inx = 0; inx < cus.size(); inx++) {
-		if (cus[inx].getTaskComplexityAsInt() == 0) {
+		if (cus[inx]->getTaskComplexityAsInt() == 0) {
+			delete cus[inx];
 			positionsToDeleteInReverseOrder.push_front(inx);
 		}
 	}
@@ -48,7 +49,7 @@ void removeFinishedCustomers(std::deque<Customer>& cus) {
 
 int main()
 {
-	std::deque<Customer> customers;
+	std::deque<Customer*> customers;
 	std::list<Teller> tellers;
 	typedef std::list<Teller>::iterator TellIt;
 
@@ -63,7 +64,8 @@ int main()
 
 		// Random szamu (0 es 4 kozotti) ugyfel, random igenyelt (1 es 15 mp kozotti) idovel
 		for (int i = 0; i < rand() % 5; i++) { // rand() 0 es RAND_MAX kozotti szamot ad vissza, ezert modulozzuk
-			customers.push_back(Customer(customerId++, std::chrono::seconds(rand() % 15 + 1)));
+			Customer* x = new Customer(customerId++, std::chrono::seconds(rand() % 15 + 1));
+			customers.push_back(x);
 		}
 		std::cout << '{' << tellers.size() << " tellers}" << std::endl;
 		std::cout << "\tCustomers to service:" << std::endl;
