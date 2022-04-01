@@ -6,6 +6,7 @@
 #include <deque>
 #include <list>
 #include <vector>
+#include <thread>
 
 #include <stdlib.h> // srand, rand miatt
 
@@ -68,9 +69,19 @@ int main()
 		std::cout << "\tCustomers to service:" << std::endl;
 		printCustomers(customers);
 
+		std::vector<std::thread> threadsToRun;
+
 		// A kiszolgalok most 5 masodpercig kiszolgaljak az ugyfeleket
-		for (TellIt i = tellers.begin(); i != tellers.end(); i++)
-			(*i).run();
+		for (TellIt i = tellers.begin(); i != tellers.end(); i++) {
+			//(*i).run();
+			threadsToRun.push_back(
+				std::thread([](TellIt ip) -> void { (*ip).run(); }, i)
+			);
+		}
+
+		for (std::thread& ttr : threadsToRun) {
+			ttr.join();
+		}
 
 		std::cout << "\tCustomers remaining:" << std::endl;
 		printTellers(tellers);
